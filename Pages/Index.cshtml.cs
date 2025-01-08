@@ -22,9 +22,6 @@ public class IndexModel : PageModel
     [BindProperty]
     public string Password { get; set; }
 
-    [BindProperty]
-    public string Role { get; set; }
-
     public void OnGet()
     {
     }
@@ -38,7 +35,7 @@ public class IndexModel : PageModel
 
         // Authenticate user from database
         var user = _context.User
-        .Where(u => u.Email == Email && u.Password == Password && u.Role == Role)   
+        .Where(u => u.Email == Email && u.Password == Password)   
         .Select(u => new { u.Id, u.Email, u.Password, u.Role })
         .FirstOrDefault();
         if (user == null)
