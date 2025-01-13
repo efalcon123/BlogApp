@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using BlogApp.Models;
 using BlogApp.Data;
 
 namespace BlogApp.Pages;
@@ -16,11 +15,12 @@ public class IndexModel : PageModel
     {
         _context = context;
     }
-    [BindProperty]
-    public string Email { get; set; }
 
     [BindProperty]
-    public string Password { get; set; }
+    public string Email { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string Password { get; set; } = string.Empty;
 
     public void OnGet()
     {
@@ -33,30 +33,40 @@ public class IndexModel : PageModel
             return Page();
         }
 
-        // Authenticate user from database
+        // Sanitize and normalize email input
+        var sanitizedEmail = Email.Trim().ToLowerInvariant();
+
         var user = _context.User
-        .Where(u => u.Email == Email && u.Password == Password)   
-        .Select(u => new { u.Id, u.Email, u.Password, u.Role })
-        .FirstOrDefault();
-        if (user == null)
+            .Where(u => u.Email == sanitizedEmail)
+            .Select(u => new { u.Id, u.Email, u.Password, u.Role })
+            .FirstOrDefault();
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(Password, user.Password))
         {
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return Page();
         }
 
-        // Create claims for user
         var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
 
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(claimsIdentity));
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-        return RedirectToPage("/User/Index");
+        return RedirectToPage("/Index");
     }
+
+    public async Task<IActionResult> OnPostLogoutAsync()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        return RedirectToPage("/Index"); 
+    }
+
 }
 

@@ -25,7 +25,6 @@ namespace BlogApp.Pages_User
         [BindProperty]
         public User User { get; set; } = default!;
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -33,6 +32,13 @@ namespace BlogApp.Pages_User
                 return Page();
             }
 
+            // Hash the user's password using BCrypt
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(User.Password);
+
+            // Set the hashed password back to the User model
+            User.Password = hashedPassword;
+
+            // Add the user to the database
             _context.User.Add(User);
             await _context.SaveChangesAsync();
 

@@ -1,0 +1,47 @@
+# Ignore build results
+bin/
+obj/
+
+# User-specific files
+.vscode/
+.idea/
+
+# ASP.NET Core environment files
+appsettings.Development.json
+appsettings.Staging.json
+appsettings.Production.json
+
+# User-specific Visual Studio files
+.vs/
+.vs2019/
+.vs2017/
+.vs2015/
+
+# User-specific Rider files
+.idea/
+
+# Windows Installer files
+Thumbs.db
+Desktop.ini
+
+# Node.js modules (if using Node.js in the project)
+node_modules/
+
+# Logs
+*.log
+
+# JetBrains Rider project files
+.idea/
+
+# .NET Core SDK & Runtime specific
+.project.json
+global.json
+
+# Ignore npm package-lock.json files
+package-lock.json
+
+# Dotnet specific
+*.user
+*.userosscache
+*.suo
+*.userprefs

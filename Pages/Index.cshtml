@@ -3,21 +3,81 @@
 @{
     ViewData["Title"] = "Home page";
 }
+<div class="container vh-100 d-flex justify-content-center align-items-center">
 
-<div class="text-center">
- <form method="post">
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email" class="text-danger"></span>        
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span> 
-    </div>
-    <button type="submit">Login</button>
-    <div asp-validation-summary="All" class="text-danger"></div>
-</form>
+    @if (!User.Identity?.IsAuthenticated ?? false)
+    {
 
+        <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
+            <div class="card-body">
+                <h3 class="card-title text-center">Login</h3>
+                <form method="post">
+                    <div class="form-group mb-3">
+                        <label for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" id="Email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" type="password" class="form-control" id="Password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                    <div asp-validation-summary="All" class="text-danger mt-3"></div>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        var role = User.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+
+        <div class="container mt-5 w-100">
+            <h2 class="text-center">Welcome, @User.Identity.Name!</h2>
+            <p class="text-center">Role: <strong>@role</strong></p>
+
+            <div class="row justify-content-center mt-4">
+                @if (role == "Admin")
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-center border-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">Manage Users</h5>
+                                <p class="card-text">Add, edit, or remove users from the system.</p>
+                                <a href="/User" class="btn btn-primary">Go to Users</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-center border-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">Manage Blogs</h5>
+                                <p class="card-text">View, create, or edit blog posts.</p>
+                                <a href="/Blog" class="btn btn-primary">Go to Blogs</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (role == "Editor")
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card text-center border-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">Manage Blogs</h5>
+                                <p class="card-text">View, create, or edit blog posts.</p>
+                                <a href="/Blog" class="btn btn-primary">Go to Blogs</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning text-center" role="alert">
+                        You do not have sufficient permissions to view this content.
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>

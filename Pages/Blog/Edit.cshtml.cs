@@ -1,16 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using BlogApp.Models;
 using BlogApp.Data;
+using BlogApp.Helpers;
 
 namespace BlogApp.Pages_Blog
 {
+    [Authorize(Roles = "Admin,Editor")]
     public class EditModel : PageModel
     {
         private readonly ApplicationBlogContext _context;
@@ -23,26 +21,46 @@ namespace BlogApp.Pages_Blog
         [BindProperty]
         public Blog Blog { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            if (!User.Identity?.IsAuthenticated ?? false)
+            {
+                return RedirectToPage("./AccessDenied");
+            }
+
             if (id == null)
             {
                 return NotFound();
             }
 
-            var blog =  await _context.Blog.FirstOrDefaultAsync(m => m.Id == id);
+            var blog = await _context.Blog.Include(b => b.CreatedBy).FirstOrDefaultAsync(m => m.Id == id);
             if (blog == null)
             {
                 return NotFound();
             }
+
+            var userHelper = new UserHelper(User);
+            var currentUserId = userHelper.GetCurrentUserId();
+
+            if (currentUserId == null || (blog.CreatedById != currentUserId.Value && !userHelper.IsAdmin()))
+            {
+                return RedirectToPage("./AccessDenied");
+            }
+
             Blog = blog;
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            var userHelper = new UserHelper(User);
+            var currentUserId = userHelper.GetCurrentUserId();
+
+            if (currentUserId == null || (Blog.CreatedById != currentUserId.Value && !userHelper.IsAdmin()))
+            {
+                return RedirectToPage("./AccessDenied");
+            }
+
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -69,7 +87,7 @@ namespace BlogApp.Pages_Blog
             return RedirectToPage("./Index");
         }
 
-        private bool BlogExists(int id)
+        private bool BlogExists(Guid id)
         {
             return _context.Blog.Any(e => e.Id == id);
         }

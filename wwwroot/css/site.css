@@ -29,3 +29,19 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.banner{
+  max-width: 200px;
+  max-height: 100px;
+}
+
+.card-hover {
+  transition: background-color 0.3s, transform 0.3s; /* Smooth hover effect */
+}
+
+.card-hover:hover {
+  background-color: #00e9fe; /* Light gray color on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+  cursor: pointer;
+}
+

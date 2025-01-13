@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using BlogApp.Data;
 using BlogApp.Models;
 
 namespace BlogApp.Pages_User
@@ -25,13 +19,13 @@ namespace BlogApp.Pages_User
         [BindProperty]
         public User User { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
+            
             var user =  await _context.User.FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
@@ -41,8 +35,6 @@ namespace BlogApp.Pages_User
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -51,6 +43,10 @@ namespace BlogApp.Pages_User
             }
 
             _context.Attach(User).State = EntityState.Modified;
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(User.Password);
+
+            User.Password = hashedPassword;
 
             try
             {
@@ -71,7 +67,7 @@ namespace BlogApp.Pages_User
             return RedirectToPage("./Index");
         }
 
-        private bool UserExists(int id)
+        private bool UserExists(Guid id)
         {
             return _context.User.Any(e => e.Id == id);
         }
